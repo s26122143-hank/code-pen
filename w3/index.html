@@ -1,0 +1,590 @@
+
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🎄 夢幻聖誕耶誕城 - 自定義迷因 (Meme) 產生器 ❄️</title>
+
+    <!-- 1. Google Fonts: 引入節慶字體 Mountains of Christmas, 迷因字體 Impact / Montserrat, 與繁體中文 Noto Sans TC -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Mountains+of+Christmas:wght@700&family=Noto+Sans+TC:wght@400;700;900&family=Outfit:wght@400;600;800&family=Montserrat:wght@800;900&display=swap" rel="stylesheet">
+
+    <!-- 2. Font Awesome 圖示庫 -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <!-- 3. Tailwind CSS (快速美化佈局) -->
+    <script src="https://cdn.tailwindcss.com"></script>
+
+    <!-- 4. html2canvas CDN (將 DOM 轉為圖片下載的核心套件) -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+
+    <style>
+        /* 基礎背景：神秘深藍星空至聖誕綠漸層 */
+        body {
+            font-family: 'Outfit', 'Noto Sans TC', sans-serif;
+            background: linear-gradient(180deg, #0b1329 0%, #172554 40%, #064e3b 85%, #022c22 100%);
+            color: #f8fafc;
+            min-height: 100vh;
+            overflow-x: hidden;
+            position: relative;
+        }
+
+        /* 經典迷因文字樣式：Impact 粗體 + 深刻黑邊 (text-shadow) */
+        .meme-text {
+            font-family: 'Impact', 'Montserrat', 'Noto Sans TC', sans-serif;
+            text-transform: uppercase;
+            letter-spacing: 1.5px;
+            line-height: 1.15;
+            word-wrap: break-word;
+            text-align: center;
+            width: 92%;
+            position: absolute;
+            left: 50%;
+            transform: translateX(-50%);
+            user-select: none;
+            /* 強大的文字黑色多重描邊，確保在任何圖片背景上都非常清晰 */
+            text-shadow: 
+                3px 3px 0 #000, -3px -3px 0 #000,
+                3px -3px 0 #000, -3px 3px 0 #000,
+                0px 3px 0 #000,  0px -3px 0 #000,
+                3px 0px 0 #000, -3px 0px 0 #000,
+                4px 4px 10px rgba(0,0,0,0.9);
+            transition: color 0.2s ease, font-size 0.1s ease;
+        }
+
+        /* 耶誕城玻璃擬態控制卡片 (Glassmorphism) */
+        .glass-panel {
+            background: rgba(15, 23, 42, 0.75);
+            backdrop-filter: blur(18px);
+            -webkit-backdrop-filter: blur(18px);
+            border: 1px solid rgba(255, 215, 0, 0.25);
+            box-shadow: 0 12px 40px 0 rgba(0, 0, 0, 0.5);
+        }
+
+        /* 聖誕金屬與木質質感邊框 */
+        .christmas-card-border {
+            border: 2px solid #eab308;
+            box-shadow: 0 0 20px rgba(234, 179, 8, 0.3), inset 0 0 15px rgba(239, 68, 68, 0.2);
+        }
+
+        /* 彩燈閃爍動畫 */
+        @keyframes fairy-lights {
+            0%, 100% { opacity: 1; filter: drop-shadow(0 0 8px #ef4444); }
+            25% { opacity: 0.4; filter: drop-shadow(0 0 2px #eab308); }
+            50% { opacity: 1; filter: drop-shadow(0 0 10px #10b981); }
+            75% { opacity: 0.5; filter: drop-shadow(0 0 3px #3b82f6); }
+        }
+
+        .fairy-light-dot {
+            animation: fairy-lights 2s infinite ease-in-out;
+        }
+
+        .fairy-light-dot:nth-child(2n) { animation-delay: 0.5s; }
+        .fairy-light-dot:nth-child(3n) { animation-delay: 1s; }
+        .fairy-light-dot:nth-child(5n) { animation-delay: 1.5s; }
+
+        /* 聖誕主題藝術標題 */
+        .christmas-title {
+            font-family: 'Mountains of Christmas', 'Noto Sans TC', cursive;
+        }
+
+        /* 自訂控制滑桿 (Range Input) 視覺設計 */
+        input[type="range"] {
+            -webkit-appearance: none;
+            appearance: none;
+            background: rgba(255, 255, 255, 0.15);
+            border-radius: 8px;
+            height: 8px;
+            outline: none;
+        }
+        input[type="range"]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 22px;
+            height: 22px;
+            border-radius: 50%;
+            background: radial-gradient(circle, #ef4444 40%, #b91c1c 100%);
+            border: 2px solid #fef08a;
+            cursor: pointer;
+            box-shadow: 0 0 12px rgba(239, 68, 68, 0.9);
+            transition: transform 0.15s ease;
+        }
+        input[type="range"]::-webkit-slider-thumb:hover {
+            transform: scale(1.25);
+        }
+
+        /* 全螢幕飄雪 Canvas 置底 */
+        #snow-canvas {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            pointer-events: none;
+            z-index: 1;
+        }
+
+        /* 頁面內容整體層級 */
+        .main-content {
+            position: relative;
+            z-index: 10;
+        }
+
+        /* 頁尾耶誕城房屋 Village 景致置底 */
+        .village-bg {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            pointer-events: none;
+            z-index: 2;
+            opacity: 0.85;
+        }
+    </style>
+</head>
+<body class="p-3 sm:p-6 md:p-8 pb-32">
+
+    <!-- 背景動態飄雪畫布 -->
+    <canvas id="snow-canvas"></canvas>
+
+    <!-- 底部耶誕城童話村落與聖誕樹 SVG 景緻 -->
+    <div class="village-bg">
+        <svg viewBox="0 0 1200 180" fill="none" xmlns="http://www.w3.org/2000/svg" class="w-full h-auto max-h-44 sm:max-h-56 object-cover object-bottom">
+            <!-- 遠景積雪山丘 -->
+            <path d="0 180 V120 Q200 90 400 110 T800 100 Q1000 80 1200 110 V180 Z" fill="#0f2922"/>
+            <path d="0 180 V140 Q300 110 600 130 T1200 130 V180 Z" fill="#143d31"/>
+
+            <!-- 積雪聖誕樹群 (兩側與後方) -->
+            <!-- 樹木 1 -->
+            <polygon points="60,140 45,170 75,170" fill="#064e3b"/>
+            <polygon points="60,125 48,150 72,150" fill="#047857"/>
+            <polygon points="60,110 52,130 68,130" fill="#10b981"/>
+            <path d="M60 110 L52 130 H68 Z" fill="#ffffff" opacity="0.8"/>
+            
+            <!-- 樹木 2 -->
+            <polygon points="120,130 100,170 140,170" fill="#064e3b"/>
+            <polygon points="120,110 105,145 135,145" fill="#047857"/>
+            <polygon points="120,90 110,120 130,120" fill="#10b981"/>
+            <path d="M120 90 L110 120 H130 Z" fill="#ffffff" opacity="0.9"/>
+
+            <!-- 歐式聖誕小木屋 1 (左側) -->
+            <rect x="220" y="120" width="70" height="50" fill="#78350f" rx="2"/>
+            <!-- 屋頂積雪 -->
+            <polygon points="210,120 255,85 300,120" fill="#451a03"/>
+            <path d="M210 120 Q255 80 300 120 Q280 115 255 118 Q230 115 210 120 Z" fill="#ffffff"/>
+            <!-- 溫馨發光窗戶 -->
+            <rect x="235" y="130" width="16" height="20" rx="2" fill="#fef08a" class="fairy-light-dot"/>
+            <rect x="265" y="130" width="16" height="20" rx="2" fill="#fef08a" class="fairy-light-dot"/>
+            <polygon points="255,95 248,105 262,105" fill="#fde047"/>
+
+            <!-- 聖誕樹 (中央大樹) -->
+            <g transform="translate(500, 40)">
+                <polygon points="80,130 50,180 110,180" fill="#022c22"/>
+                <polygon points="80,100 55,145 105,145" fill="#064e3b"/>
+                <polygon points="80,70 60,115 100,115" fill="#047857"/>
+                <polygon points="80,40 68,80 92,80" fill="#10b981"/>
+                <!-- 樹頂星星 -->
+                <polygon points="80,25 83,33 92,33 85,38 87,46 80,41 73,46 75,38 68,33 77,33" fill="#facc15" class="fairy-light-dot"/>
+                <!-- 積雪覆蓋 -->
+                <path d="M80 40 L68 80 H92 Z" fill="#ffffff" opacity="0.85"/>
+                <path d="M80 70 L60 115 H100 Z" fill="#ffffff" opacity="0.75"/>
+                <!-- 樹上裝飾彩燈 -->
+                <circle cx="72" cy="90" r="3" fill="#ef4444" class="fairy-light-dot"/>
+                <circle cx="88" cy="110" r="3" fill="#3b82f6" class="fairy-light-dot"/>
+                <circle cx="65" cy="130" r="3" fill="#f59e0b" class="fairy-light-dot"/>
+                <circle cx="95" cy="140" r="3" fill="#10b981" class="fairy-light-dot"/>
+            </g>
+
+            <!-- 歐式大木屋 / 教堂 (右側) -->
+            <rect x="750" y="100" width="110" height="70" fill="#581c87" rx="2"/>
+            <polygon points="735,100 805,50 875,100" fill="#3b0764"/>
+            <!-- 屋頂厚雪 -->
+            <path d="M735 100 Q805 45 875 100 Q840 93 805 96 Q770 93 735 100 Z" fill="#ffffff"/>
+            <!-- 哥德式發光窗戶 -->
+            <path d="M780 120 C780 110 830 110 830 120 V160 H780 Z" fill="#fef08a" opacity="0.9" class="fairy-light-dot"/>
+            <!-- 屋簷彩燈燈串 -->
+            <circle cx="745" cy="102" r="2.5" fill="#ef4444" class="fairy-light-dot"/>
+            <circle cx="765" cy="88" r="2.5" fill="#facc15" class="fairy-light-dot"/>
+            <circle cx="785" cy="72" r="2.5" fill="#10b981" class="fairy-light-dot"/>
+            <circle cx="805" cy="56" r="3" fill="#3b82f6" class="fairy-light-dot"/>
+            <circle cx="825" cy="72" r="2.5" fill="#ef4444" class="fairy-light-dot"/>
+            <circle cx="845" cy="88" r="2.5" fill="#facc15" class="fairy-light-dot"/>
+            <circle cx="865" cy="102" r="2.5" fill="#10b981" class="fairy-light-dot"/>
+
+            <!-- 右側聖誕樹群 -->
+            <g transform="translate(980, 50)">
+                <polygon points="60,130 40,170 80,170" fill="#064e3b"/>
+                <polygon points="60,100 45,140 75,140" fill="#047857"/>
+                <polygon points="60,75 50,110 70,110" fill="#10b981"/>
+                <path d="M60 75 L50 110 H70 Z" fill="#ffffff" opacity="0.9"/>
+            </g>
+
+            <!-- 地面厚雪層 -->
+            <path d="M0 165 Q300 150 600 160 T1200 155 V180 H0 Z" fill="#f8fafc"/>
+        </svg>
+    </div>
+
+    <!-- 主要應用程式區域 -->
+    <div class="main-content max-w-6xl mx-auto">
+        
+        <!-- 頂部 Header：霓虹燈飾與標題 -->
+        <header class="text-center mb-8 glass-panel christmas-card-border p-6 rounded-3xl relative overflow-hidden">
+            
+            <!-- 標題上方裝飾彩燈鏈 -->
+            <div class="flex justify-center gap-3 mb-3">
+                <span class="w-3 h-3 rounded-full bg-red-500 inline-block fairy-light-dot"></span>
+                <span class="w-3 h-3 rounded-full bg-yellow-400 inline-block fairy-light-dot"></span>
+                <span class="w-3 h-3 rounded-full bg-emerald-400 inline-block fairy-light-dot"></span>
+                <span class="w-3 h-3 rounded-full bg-blue-400 inline-block fairy-light-dot"></span>
+                <span class="w-3 h-3 rounded-full bg-purple-400 inline-block fairy-light-dot"></span>
+                <span class="w-3 h-3 rounded-full bg-red-500 inline-block fairy-light-dot"></span>
+                <span class="w-3 h-3 rounded-full bg-yellow-400 inline-block fairy-light-dot"></span>
+            </div>
+
+            <div class="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-red-600/30 text-red-200 border border-red-500/50 text-xs font-bold mb-2 shadow-inner">
+                <i class="fa-solid fa-snowflake animate-spin" style="animation-duration: 10s;"></i> 2026 耶誕城冬日慶典特別版
+            </div>
+
+            <h1 class="text-4xl sm:text-5xl md:text-6xl font-black text-transparent bg-clip-text bg-gradient-to-r from-red-400 via-amber-200 to-emerald-300 christmas-title tracking-wider drop-shadow-md">
+                🎄 耶誕城自定義迷因產生器 🎅
+            </h1>
+
+            <p class="text-slate-200 text-xs sm:text-sm md:text-base mt-2 max-w-2xl mx-auto">
+                挑選你的趣味圖片，加上超有梗的雙層文字，製作獨一無二的聖誕節爆笑 Meme！一鍵高清導出～ ✨
+            </p>
+        </header>
+
+        <!-- 主體內容網格：桌機左右分欄，手機上下疊加 -->
+        <main class="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
+            
+            <!-- ================= 左側（或上方）：控制面板區 ================= -->
+            <section class="lg:col-span-5 glass-panel p-6 rounded-3xl flex flex-col gap-6 christmas-card-border">
+                
+                <!-- 1. 圖片上傳區塊 -->
+                <div class="space-y-2">
+                    <label class="text-sm font-bold text-amber-300 flex items-center gap-2">
+                        <i class="fa-solid fa-cloud-arrow-up text-red-400"></i> 1. 上傳底圖 (本機讀取免 CORS 錯誤)
+                    </label>
+                    <div class="relative">
+                        <input type="file" id="image-upload" accept="image/*" class="hidden">
+                        <label for="image-upload" class="flex items-center justify-center gap-3 w-full p-4 border-2 border-dashed border-amber-400/60 hover:border-amber-300 bg-red-950/30 hover:bg-red-900/40 rounded-2xl cursor-pointer transition-all duration-200 text-slate-100 group shadow-lg">
+                            <i class="fa-solid fa-image text-2xl text-amber-400 group-hover:scale-110 transition-transform"></i>
+                            <span class="font-semibold text-xs sm:text-sm" id="upload-label-text">點擊選擇電腦/手機中的圖片</span>
+                        </label>
+                    </div>
+                    <p class="text-[11px] text-slate-300 italic">* 使用 FileReader 技術，圖片不經過第三方伺服器，下載 100% 成功！</p>
+                </div>
+
+                <hr class="border-slate-700/80">
+
+                <!-- 2. 雙層文字輸入區塊 -->
+                <div class="space-y-4">
+                    <label class="text-sm font-bold text-amber-300 flex items-center gap-2">
+                        <i class="fa-solid fa-pen-nib text-emerald-400"></i> 2. 雙層迷因文字輸入
+                    </label>
+                    
+                    <!-- 上方文字 -->
+                    <div>
+                        <span class="text-xs text-slate-300 mb-1 block">上方文字 (Top Text)：</span>
+                        <input type="text" id="top-text-input" value="當你在耶誕城找到停車位..." placeholder="請輸入上方文字..." 
+                            class="w-full bg-slate-900/90 border border-slate-600 focus:border-red-400 rounded-xl px-3.5 py-2.5 text-sm text-white focus:outline-none focus:ring-2 focus:ring-red-400/40 transition">
+                    </div>
+
+                    <!-- 下方文字 -->
+                    <div>
+                        <span class="text-xs text-slate-300 mb-1 block">下方文字 (Bottom Text)：</span>
+                        <input type="text" id="bottom-text-input" value="但發現停車費一小時 200 元" placeholder="請輸入下方文字..." 
+                            class="w-full bg-slate-900/90 border border-slate-600 focus:border-emerald-400 rounded-xl px-3.5 py-2.5 text-sm text-white focus:outline-none focus:ring-2 focus:ring-emerald-400/40 transition">
+                    </div>
+                </div>
+
+                <hr class="border-slate-700/80">
+
+                <!-- 3. 參數滑桿與樣式微調 -->
+                <div class="space-y-4">
+                    <label class="text-sm font-bold text-amber-300 flex items-center gap-2">
+                        <i class="fa-solid fa-sliders text-yellow-400"></i> 3. 參數滑桿與顏色微調
+                    </label>
+
+                    <!-- 字體大小滑桿 -->
+                    <div class="space-y-1">
+                        <div class="flex justify-between text-xs text-slate-200">
+                            <span>文字大小 (Font Size)</span>
+                            <span id="font-size-val" class="text-red-400 font-mono font-bold">34px</span>
+                        </div>
+                        <input type="range" id="font-size-slider" min="16" max="64" value="34" class="w-full">
+                    </div>
+
+                    <!-- 上方文字位置滑桿 -->
+                    <div class="space-y-1">
+                        <div class="flex justify-between text-xs text-slate-200">
+                            <span>上方文字高度 (Top Offset)</span>
+                            <span id="top-pos-val" class="text-amber-400 font-mono font-bold">6%</span>
+                        </div>
+                        <input type="range" id="top-pos-slider" min="0" max="80" value="6" class="w-full">
+                    </div>
+
+                    <!-- 下方文字位置滑桿 -->
+                    <div class="space-y-1">
+                        <div class="flex justify-between text-xs text-slate-200">
+                            <span>下方文字高度 (Bottom Offset)</span>
+                            <span id="bottom-pos-val" class="text-emerald-400 font-mono font-bold">6%</span>
+                        </div>
+                        <input type="range" id="bottom-pos-slider" min="0" max="80" value="6" class="w-full">
+                    </div>
+
+                    <!-- 文字顏色調色盤 -->
+                    <div class="flex items-center justify-between pt-2">
+                        <span class="text-xs text-slate-200">文字顏色快捷選擇：</span>
+                        <div class="flex gap-2">
+                            <button type="button" class="color-btn w-7 h-7 rounded-full bg-white border-2 border-amber-400 focus:scale-110 transition shadow" data-color="#FFFFFF" title="白色"></button>
+                            <button type="button" class="color-btn w-7 h-7 rounded-full bg-yellow-300 border-2 border-transparent focus:scale-110 transition shadow" data-color="#FDE047" title="經典黃"></button>
+                            <button type="button" class="color-btn w-7 h-7 rounded-full bg-red-500 border-2 border-transparent focus:scale-110 transition shadow" data-color="#EF4444" title="聖誕紅"></button>
+                            <button type="button" class="color-btn w-7 h-7 rounded-full bg-emerald-400 border-2 border-transparent focus:scale-110 transition shadow" data-color="#34D399" title="耶誕綠"></button>
+                        </div>
+                    </div>
+                </div>
+
+                <hr class="border-slate-700/80">
+
+                <!-- 4. 下載按鈕 -->
+                <div>
+                    <button id="download-btn" class="w-full py-4 px-6 rounded-2xl bg-gradient-to-r from-red-600 via-amber-500 to-emerald-600 hover:from-red-500 hover:via-amber-400 hover:to-emerald-500 text-white font-extrabold text-base sm:text-lg shadow-xl shadow-red-950/60 transform active:scale-95 hover:-translate-y-0.5 transition-all duration-200 flex items-center justify-center gap-3 border border-yellow-300/40">
+                        <i class="fa-solid fa-circle-down text-xl"></i>
+                        <span>下載專屬迷因圖 (my-meme.png)</span>
+                    </button>
+                </div>
+
+            </section>
+
+            <!-- ================= 右側（或下方）：即時迷因預覽區 ================= -->
+            <section class="lg:col-span-7 glass-panel p-6 rounded-3xl flex flex-col items-center justify-center christmas-card-border min-h-[420px]">
+                
+                <div class="w-full flex items-center justify-between mb-4 px-1">
+                    <span class="text-sm font-bold text-amber-300 flex items-center gap-2">
+                        <i class="fa-solid fa-eye text-red-400"></i> 即時迷因預覽區
+                    </span>
+                    <span class="text-xs bg-slate-900/80 text-amber-200 px-3 py-1 rounded-full border border-amber-500/30">
+                        ❄️ 包含高對比描邊
+                    </span>
+                </div>
+
+                <!-- 迷因核心繪製容器 (#meme-container) -->
+                <!-- html2canvas 會精確抓取這個區塊的所有內容並轉成 PNG -->
+                <div id="meme-container" class="relative max-w-full overflow-hidden rounded-2xl bg-slate-950 border-2 border-slate-700 shadow-2xl flex items-center justify-center min-h-[300px] sm:min-h-[380px] w-full">
+                    
+                    <!-- 迷因底圖：預設採用優美聖誕耶誕城 SVG 特效底圖，上傳後替換為使用者圖片 -->
+                    <img id="meme-image" src="data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='600' height='400' viewBox='0 0 600 400'><rect width='600' height='400' fill='%230f172a'/><path d='M0 250 Q150 200 300 230 T600 220 V400 H0 Z' fill='%231e293b'/><circle cx='480' cy='90' r='40' fill='%23fef08a' opacity='0.9'/><polygon points='150,280 100,360 200,360' fill='%23064e3b'/><polygon points='150,230 115,300 185,300' fill='%23047857'/><polygon points='150,180 130,240 170,240' fill='%2310b981'/><polygon points='150,165 153,173 162,173 155,178 157,186 150,181 143,186 145,178 138,173 147,173' fill='%23facc15'/><rect x='360' y='270' width='90' height='70' fill='%2378350f'/><polygon points='345,270 405,220 465,270' fill='%23451a03'/><rect x='380' y='290' width='20' height='25' fill='%23fef08a'/><rect x='415' y='290' width='20' height='25' fill='%23fef08a'/><text x='50%25' y='45%25' dominant-baseline='middle' text-anchor='middle' fill='%2394a3b8' font-family='sans-serif' font-size='16'>🎄 點擊左側按鈕可替換為自訂圖片 🎁</text></svg>" alt="Meme Preview" class="max-w-full h-auto object-contain block mx-auto">
+
+                    <!-- 上方渲染文字 -->
+                    <div id="meme-top-text" class="meme-text" style="top: 6%; font-size: 34px; color: #FFFFFF;">
+                        當你在耶誕城找到停車位...
+                    </div>
+
+                    <!-- 下方渲染文字 -->
+                    <div id="meme-bottom-text" class="meme-text" style="bottom: 6%; font-size: 34px; color: #FFFFFF;">
+                        但發現停車費一小時 200 元
+                    </div>
+                </div>
+
+                <p class="text-xs text-slate-300 mt-4 text-center">
+                    💡 提示：調整滑桿可自由更改文字位置與大小，產出的圖檔解析度會雙倍放大更清晰！
+                </p>
+            </section>
+
+        </main>
+    </div>
+
+    <!-- JavaScript 邏輯控制 -->
+    <script>
+        // ==========================================
+        // 1. 取得 DOM 節點物件
+        // ==========================================
+        const imageUpload = document.getElementById('image-upload');
+        const memeImage = document.getElementById('meme-image');
+        const uploadLabelText = document.getElementById('upload-label-text');
+
+        const topTextInput = document.getElementById('top-text-input');
+        const bottomTextInput = document.getElementById('bottom-text-input');
+        const memeTopText = document.getElementById('meme-top-text');
+        const memeBottomText = document.getElementById('meme-bottom-text');
+
+        const fontSizeSlider = document.getElementById('font-size-slider');
+        const fontSizeVal = document.getElementById('font-size-val');
+        const topPosSlider = document.getElementById('top-pos-slider');
+        const topPosVal = document.getElementById('top-pos-val');
+        const bottomPosSlider = document.getElementById('bottom-pos-slider');
+        const bottomPosVal = document.getElementById('bottom-pos-val');
+
+        const downloadBtn = document.getElementById('download-btn');
+        const memeContainer = document.getElementById('meme-container');
+        const colorBtns = document.querySelectorAll('.color-btn');
+
+        // ==========================================
+        // 2. 本機圖片讀取 (FileReader 避開 CORS 錯誤)
+        // ==========================================
+        imageUpload.addEventListener('change', function(e) {
+            const file = e.target.files[0];
+            if (file) {
+                // 使用原生的 FileReader 讀取檔案
+                const reader = new FileReader();
+
+                reader.onload = function(event) {
+                    // 將讀取出來的 DataURL (Base64) 賦予給 <img> 的 src
+                    memeImage.src = event.target.result;
+                    uploadLabelText.textContent = `已載入：${file.name}`;
+                };
+
+                // 以 Base64 格式讀取
+                reader.readAsDataURL(file);
+            }
+        });
+
+        // ==========================================
+        // 3. 雙層文字即時同步更新
+        // ==========================================
+        topTextInput.addEventListener('input', function() {
+            memeTopText.textContent = this.value || '';
+        });
+
+        bottomTextInput.addEventListener('input', function() {
+            memeBottomText.textContent = this.value || '';
+        });
+
+        // ==========================================
+        // 4. 滑桿與控制項連動
+        // ==========================================
+        
+        // 調整字體大小
+        fontSizeSlider.addEventListener('input', function() {
+            const size = `${this.value}px`;
+            fontSizeVal.textContent = size;
+            memeTopText.style.fontSize = size;
+            memeBottomText.style.fontSize = size;
+        });
+
+        // 調整上方文字 Top 位置 (%)
+        topPosSlider.addEventListener('input', function() {
+            const pos = `${this.value}%`;
+            topPosVal.textContent = pos;
+            memeTopText.style.top = pos;
+        });
+
+        // 調整下方文字 Bottom 位置 (%)
+        bottomPosSlider.addEventListener('input', function() {
+            const pos = `${this.value}%`;
+            bottomPosVal.textContent = pos;
+            memeBottomText.style.bottom = pos;
+        });
+
+        // 切換文字顏色
+        colorBtns.forEach(btn => {
+            btn.addEventListener('click', function() {
+                const color = this.getAttribute('data-color');
+                memeTopText.style.color = color;
+                memeBottomText.style.color = color;
+
+                // 更新選取按鈕的邊框狀態
+                colorBtns.forEach(b => b.classList.replace('border-amber-400', 'border-transparent'));
+                this.classList.replace('border-transparent', 'border-amber-400');
+            });
+        });
+
+        // ==========================================
+        // 5. 一鍵圖片下載 (html2canvas 截圖導出)
+        // ==========================================
+        downloadBtn.addEventListener('click', function() {
+            // 顯示載入動畫狀態
+            const originalHTML = downloadBtn.innerHTML;
+            downloadBtn.innerHTML = `<i class="fa-solid fa-snowflake animate-spin text-xl"></i> 生成高清圖檔中...`;
+            downloadBtn.disabled = true;
+
+            // 呼叫 html2canvas 繪製 #meme-container 節點
+            html2canvas(memeContainer, {
+                useCORS: true,
+                scale: 2,                 // 雙倍解析度，輸出更清晰
+                backgroundColor: null,    // 保持背景透明度
+                logging: false
+            }).then(canvas => {
+                // 將畫布轉成 PNG DataURL
+                const imageUrl = canvas.toDataURL('image/png');
+                
+                // 建立虛擬 <a> 標籤觸發瀏覽器下載
+                const downloadLink = document.createElement('a');
+                downloadLink.download = 'my-meme.png';
+                downloadLink.href = imageUrl;
+                downloadLink.click();
+
+                // 恢復按鈕原本文字與功能
+                downloadBtn.innerHTML = originalHTML;
+                downloadBtn.disabled = false;
+            }).catch(err => {
+                console.error('截圖生成失敗：', err);
+                alert('導出圖片發生錯誤，請重新試試看！');
+                downloadBtn.innerHTML = originalHTML;
+                downloadBtn.disabled = false;
+            });
+        });
+
+        // ==========================================
+        // 6. 全螢幕夜空飄雪 Canvas 粒子動畫
+        // ==========================================
+        const snowCanvas = document.getElementById('snow-canvas');
+        const ctx = snowCanvas.getContext('2d');
+
+        let width = snowCanvas.width = window.innerWidth;
+        let height = snowCanvas.height = window.innerHeight;
+
+        // 當螢幕尺寸改變時自動適應
+        window.addEventListener('resize', () => {
+            width = snowCanvas.width = window.innerWidth;
+            height = snowCanvas.height = window.innerHeight;
+        });
+
+        // 建立雪花粒子數據
+        const flakeCount = 80;
+        const flakes = [];
+
+        for (let i = 0; i < flakeCount; i++) {
+            flakes.push({
+                x: Math.random() * width,
+                y: Math.random() * height,
+                radius: Math.random() * 3.5 + 1,
+                speedY: Math.random() * 1.2 + 0.6,
+                speedX: Math.random() * 0.6 - 0.3,
+                opacity: Math.random() * 0.8 + 0.2
+            });
+        }
+
+        // 循環繪製動畫
+        function animateSnow() {
+            ctx.clearRect(0, 0, width, height);
+
+            flakes.forEach(flake => {
+                ctx.beginPath();
+                ctx.arc(flake.x, flake.y, flake.radius, 0, Math.PI * 2);
+                ctx.fillStyle = `rgba(255, 255, 255, ${flake.opacity})`;
+                ctx.fill();
+
+                // 下落與左右擺動微風效果
+                flake.y += flake.speedY;
+                flake.x += flake.speedX;
+
+                // 重設掉出畫面的雪花位置
+                if (flake.y > height) {
+                    flake.y = -10;
+                    flake.x = Math.random() * width;
+                }
+                if (flake.x > width) flake.x = 0;
+                if (flake.x < 0) flake.x = width;
+            });
+
+            requestAnimationFrame(animateSnow);
+        }
+
+        // 啟動飄雪效果
+        animateSnow();
+    </script>
+</body>
+</html>
