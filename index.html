@@ -16,7 +16,7 @@
         :root {
             --bg-color: #fcf6f7;          /* 櫻花淡粉白背景 */
             --card-bg: rgba(255, 255, 255, 0.85); /* 半透明玻璃質感 */
-            --text-main: #3d3135;         /* 暗木褐文字 */
+            --text-main: #3d3135;          /* 暗木褐文字 */
             --text-sub: #8c7379;          /* 淡紫灰 */
             --sakura-pink: #ffb7c5;       /* 櫻花粉 */
             --sakura-accent: #e06d88;     /* 櫻紅點綴色 */
@@ -44,7 +44,6 @@
             padding: 40px 20px;
             overflow-x: hidden;
             position: relative;
-            /* 微妙的日式和紙漸層背景 */
             background-image: 
                 radial-gradient(#f3d7df 1px, transparent 1px),
                 linear-gradient(to bottom, #fff8f9, #fbeef1);
@@ -92,7 +91,7 @@
             display: flex;
             flex-direction: column;
             align-items: center;
-            z-index: 1; /* 確保內容在櫻花飄落背景之上 */
+            z-index: 1;
         }
 
         /* ==========================================
@@ -104,7 +103,6 @@
             position: relative;
         }
 
-        /* 大頭貼櫻花外框 */
         .avatar-wrapper {
             position: relative;
             width: 125px;
@@ -126,7 +124,6 @@
             transform: scale(1.08) rotate(6deg);
         }
 
-        /* 粉紅旋轉光暈環 */
         .avatar-wrapper::after {
             content: '';
             position: absolute;
@@ -176,7 +173,6 @@
             width: 100%;
         }
 
-        /* 按鈕基本樣式 */
         .btn {
             position: relative;
             display: flex;
@@ -214,11 +210,7 @@
             z-index: 1;
         }
 
-        /* ==========================================
-           4. 櫻花懸停動畫 (Hover Effect) 與鎖定狀態
-           ========================================== */
-
-        /* 【已解鎖按鈕 - 櫻花粉漸層 Hover 效果】 */
+        /* 解鎖按鈕 Hover 效果 */
         .btn.unlocked:hover {
             transform: translateY(-6px) scale(1.02);
             box-shadow: var(--shadow-hover);
@@ -230,7 +222,6 @@
             color: #fff0f3;
         }
 
-        /* 櫻花瓣浪潮滑入效果 */
         .btn.unlocked::before {
             content: '';
             position: absolute;
@@ -254,7 +245,7 @@
             z-index: 1;
         }
 
-        /* 【未解鎖按鈕 - 灰色遊戲關卡】 */
+        /* 鎖定按鈕樣式 */
         .btn.locked {
             background-color: var(--locked-bg);
             color: var(--locked-text);
@@ -273,7 +264,6 @@
             opacity: 0.6;
         }
 
-        /* 滑鼠移到未解鎖關卡時震動反饋 */
         .btn.locked:hover {
             animation: shake 0.4s ease-in-out;
         }
@@ -287,32 +277,91 @@
         }
 
         /* ==========================================
-           5. RWD 響應式佈局
+           4. 關卡展示 Modal 彈窗樣式
            ========================================== */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(61, 49, 53, 0.4);
+            backdrop-filter: blur(8px);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 100;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.3s ease;
+        }
+
+        .modal-overlay.active {
+            opacity: 1;
+            pointer-events: auto;
+        }
+
+        .modal-card {
+            background: #ffffff;
+            border-radius: 20px;
+            padding: 30px;
+            max-width: 500px;
+            width: 90%;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.15);
+            text-align: center;
+            position: relative;
+            transform: translateY(20px);
+            transition: transform 0.3s ease;
+            border: 2px solid var(--sakura-pink);
+        }
+
+        .modal-overlay.active .modal-card {
+            transform: translateY(0);
+        }
+
+        .modal-title {
+            font-family: 'Noto Serif JP', serif;
+            font-size: 1.4rem;
+            color: var(--text-main);
+            margin-bottom: 12px;
+        }
+
+        .modal-body {
+            font-size: 0.95rem;
+            color: var(--text-sub);
+            line-height: 1.6;
+            margin-bottom: 24px;
+        }
+
+        .modal-close-btn {
+            background: var(--sakura-gradient);
+            color: #ffffff;
+            border: none;
+            padding: 10px 24px;
+            border-radius: 30px;
+            font-family: inherit;
+            font-weight: 600;
+            cursor: pointer;
+            box-shadow: var(--shadow);
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+        }
+
+        .modal-close-btn:hover {
+            transform: scale(1.05);
+            box-shadow: var(--shadow-hover);
+        }
+
+        /* RWD 響應式佈局 */
         @media (max-width: 868px) {
-            .grid-container {
-                grid-template-columns: repeat(3, 1fr);
-            }
+            .grid-container { grid-template-columns: repeat(3, 1fr); }
         }
-
         @media (max-width: 600px) {
-            .grid-container {
-                grid-template-columns: repeat(2, 1fr);
-                gap: 12px;
-            }
-            .btn {
-                padding: 16px 10px;
-                min-height: 95px;
-            }
-            .profile-name {
-                font-size: 1.5rem;
-            }
+            .grid-container { grid-template-columns: repeat(2, 1fr); gap: 12px; }
+            .btn { padding: 16px 10px; min-height: 95px; }
+            .profile-name { font-size: 1.5rem; }
         }
-
         @media (max-width: 380px) {
-            .grid-container {
-                grid-template-columns: repeat(1, 1fr);
-            }
+            .grid-container { grid-template-columns: repeat(1, 1fr); }
         }
     </style>
 </head>
@@ -325,8 +374,7 @@
         <!-- 頁首：個人大頭貼與名字 -->
         <header class="profile-card">
             <div class="avatar-wrapper">
-                <!-- 預設假圖片，之後可自行替換 -->
-                <img class="avatar" src="https://api.dicebear.com/7.x/bottts/svg?seed=SakuraPortfolio"alt="個人大頭貼">
+                <img class="avatar" src="https://api.dicebear.com/7.x/bottts/svg?seed=SakuraPortfolio" alt="個人大頭貼">
             </div>
             <h1 class="profile-name">網頁設計作品集</h1>
             <p class="profile-subtitle">SAKURA PORTFOLIO</p>
@@ -335,22 +383,23 @@
         <!-- 主體：16 個作品任務選單 -->
         <main class="grid-container">
             
-           <!-- 修改後的 STAGE 01 ~ 03 HTML 片段 -->
-<a href="w1/index.html" class="btn unlocked">
-    <span class="btn-week">STAGE 01</span>
-    <span class="btn-title">Week 1-數位名片</span>
-</a>
+            <!-- 按鈕 1 (已解鎖) -->
+            <button class="btn unlocked" onclick="openModal('STAGE 01', 'Week 1 - 數位名片', '這是 Week 1 的數位名片專案內容展示。您可以將實際的專案畫面或連結放置於此。')">
+                <span class="btn-week">STAGE 01</span>
+                <span class="btn-title">Week 1-數位名片</span>
+            </button>
 
-<a href="w2/index.html" class="btn unlocked">
-    <span class="btn-week">STAGE 02</span>
-    <span class="btn-title">Week 2-今天吃甚麼？</span>
-</a>
+            <!-- 按鈕 2 (已解鎖) -->
+            <button class="btn unlocked" onclick="openModal('STAGE 02', 'Week 2 - 今天吃甚麼？', '這是 Week 2 的外食抽籤選擇工具。')">
+                <span class="btn-week">STAGE 02</span>
+                <span class="btn-title">Week 2-今天吃甚麼？</span>
+            </button>
 
-<!-- 已修正 STAGE 03 的超連結為 w3/index.html -->
-<a href="w3/index.html" class="btn unlocked">
-    <span class="btn-week">STAGE 03</span>
-    <span class="btn-title">Week 3-迷因產生器</span>
-</a>
+            <!-- 按鈕 3 (已解鎖 - 修正原本路徑與錯誤) -->
+            <button class="btn unlocked" onclick="openModal('STAGE 03', 'Week 3 - 迷因產生器', '這是 Week 3 的迷因圖片自訂產生器。')">
+                <span class="btn-week">STAGE 03</span>
+                <span class="btn-title">Week 3-迷因產生器</span>
+            </button>
             
             <!-- 按鈕 4 ~ 16 (未解鎖) -->
             <div class="btn locked"><span class="lock-icon">🔒</span><span class="btn-week">STAGE 04</span><span class="btn-title">未解鎖關卡</span></div>
@@ -370,28 +419,48 @@
         </main>
     </div>
 
-    <!-- 動態生成櫻花花瓣效果 Script -->
+    <!-- 關卡彈窗容器 -->
+    <div class="modal-overlay" id="modalOverlay">
+        <div class="modal-card">
+            <h2 class="modal-title" id="modalStageTitle">STAGE 01</h2>
+            <p class="modal-body" id="modalStageContent">關卡內容載入中...</p>
+            <button class="modal-close-btn" onclick="closeModal()">關閉視窗</button>
+        </div>
+    </div>
+
+    <!-- JavaScript 腳本區塊 -->
     <script>
+        // 生成櫻花花瓣
         function createSakura() {
             const container = document.getElementById('sakura');
-            const petalCount = 20; // 畫面上花瓣數量
+            const petalCount = 20;
 
             for (let i = 0; i < petalCount; i++) {
                 const petal = document.createElement('div');
                 petal.classList.add('petal');
                 
-                // 隨機尺寸
                 const size = Math.random() * 10 + 8;
                 petal.style.width = `${size}px`;
                 petal.style.height = `${size * 1.4}px`;
                 
-                // 隨機位置與動畫時間
                 petal.style.left = `${Math.random() * 100}%`;
                 petal.style.animationDuration = `${Math.random() * 5 + 6}s`;
                 petal.style.animationDelay = `${Math.random() * 5}s`;
                 
                 container.appendChild(petal);
             }
+        }
+
+        // 開啟 Modal 關卡視窗
+        function openModal(stage, title, desc) {
+            document.getElementById('modalStageTitle').innerText = `${stage} 🌸 ${title}`;
+            document.getElementById('modalStageContent').innerText = desc;
+            document.getElementById('modalOverlay').classList.add('active');
+        }
+
+        // 關閉 Modal 視窗
+        function closeModal() {
+            document.getElementById('modalOverlay').classList.remove('active');
         }
 
         // 初始化櫻花動畫
