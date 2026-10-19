@@ -441,4 +441,36 @@
             const petalCount = 20;
 
             for (let i = 0; i < petalCount; i++) {
-                const petal
+                const petal = document.createElement('div');
+                petal.classList.add('petal');
+                
+                const size = Math.random() * 10 + 8;
+                petal.style.width = `${size}px`;
+                petal.style.height = `${size * 1.4}px`;
+                
+                petal.style.left = `${Math.random() * 100}%`;
+                petal.style.animationDuration = `${Math.random() * 5 + 6}s`;
+                petal.style.animationDelay = `${Math.random() * 5}s`;
+                
+                container.appendChild(petal);
+            }
+        }
+
+        // 開啟 Modal 關卡視窗
+        function openModal(stage, title, desc) {
+            document.getElementById('modalStageTitle').innerText = `${stage} 🌸 ${title}`;
+            document.getElementById('modalStageContent').innerText = desc;
+            document.getElementById('modalOverlay').classList.add('active');
+        }
+
+        // 關閉 Modal 視窗
+        function closeModal() {
+            document.getElementById('modalOverlay').classList.remove('active');
+        }
+
+        // 初始化櫻花動畫
+        document.addEventListener('DOMContentLoaded', createSakura);
+    </script>
+
+</body>
+</html>
