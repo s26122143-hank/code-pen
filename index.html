@@ -50,14 +50,14 @@
             background-size: 24px 24px, 100% 100%;
         }
 
-        /* 飄落櫻花容器 */
+        /* 飄落櫻花容器 - pointer-events 設為 none 防阻擋點擊 */
         .sakura-container {
             position: fixed;
             top: 0;
             left: 0;
             width: 100%;
             height: 100%;
-            pointer-events: none;
+            pointer-events: none !important;
             z-index: 0;
             overflow: hidden;
         }
@@ -68,7 +68,7 @@
             background: linear-gradient(135deg, #ffc0cb, #ffb3c1);
             border-radius: 150% 0 150% 150%;
             opacity: 0.7;
-            pointer-events: none;
+            pointer-events: none !important;
             animation: fall linear infinite;
         }
 
@@ -91,7 +91,7 @@
             display: flex;
             flex-direction: column;
             align-items: center;
-            z-index: 1;
+            z-index: 10; /* 提升層級確保可以被點擊 */
         }
 
         /* ==========================================
@@ -200,6 +200,7 @@
             letter-spacing: 1.5px;
             color: var(--sakura-accent);
             margin-bottom: 6px;
+            pointer-events: none; /* 穿透點擊到 parent button */
         }
 
         .btn-title {
@@ -208,6 +209,7 @@
             text-align: center;
             line-height: 1.4;
             z-index: 1;
+            pointer-events: none; /* 穿透點擊到 parent button */
         }
 
         /* 解鎖按鈕 Hover 效果 */
@@ -234,6 +236,7 @@
             transform: translateY(100%);
             transition: transform 0.4s ease-out;
             z-index: 0;
+            pointer-events: none;
         }
 
         .btn.unlocked:hover::before {
@@ -290,7 +293,7 @@
             display: flex;
             justify-content: center;
             align-items: center;
-            z-index: 100;
+            z-index: 1000;
             opacity: 0;
             pointer-events: none;
             transition: opacity 0.3s ease;
@@ -383,26 +386,26 @@
         <!-- 主體：16 個作品任務選單 -->
         <main class="grid-container">
             
-            <!-- 按鈕 1 (已解鎖 - 補上 onclick 事件) -->
-            <button class="btn unlocked" onclick="openModal('STAGE 01', 'Week 1 - 數位名片', '這是 Week 1 的數位名片專案內容展示。您可以將實際的專案畫面或連結放置於此。')">
+            <!-- 按鈕 1 (已解鎖) -->
+            <button class="btn unlocked" data-stage="STAGE 01" data-title="Week 1 - 數位名片" data-desc="這是 Week 1 的數位名片專案內容展示。您可以將實際的專案畫面或連結放置於此。">
                 <span class="btn-week">STAGE 01</span>
                 <span class="btn-title">Week 1-數位名片</span>
             </button>
 
-            <!-- 按鈕 2 (已解鎖 - 補上 onclick 事件) -->
-            <button class="btn unlocked" onclick="openModal('STAGE 02', 'Week 2 - 今天吃甚麼？', '這是 Week 2 的外食抽籤選擇工具。')">
+            <!-- 按鈕 2 (已解鎖) -->
+            <button class="btn unlocked" data-stage="STAGE 02" data-title="Week 2 - 今天吃甚麼？" data-desc="這是 Week 2 的外食抽籤選擇工具。">
                 <span class="btn-week">STAGE 02</span>
                 <span class="btn-title">Week 2-今天吃甚麼？</span>
             </button>
 
-            <!-- 按鈕 3 (已解鎖 - 補上 onclick 事件) -->
-            <button class="btn unlocked" onclick="openModal('STAGE 03', 'Week 3 - 迷因產生器', '這是 Week 3 的迷因圖片自訂產生器。')">
+            <!-- 按鈕 3 (已解鎖) -->
+            <button class="btn unlocked" data-stage="STAGE 03" data-title="Week 3 - 迷因產生器" data-desc="這是 Week 3 的迷因圖片自訂產生器。">
                 <span class="btn-week">STAGE 03</span>
                 <span class="btn-title">Week 3-迷因產生器</span>
             </button>
 
-            <!-- 按鈕 4 (已解鎖 - 補上 onclick 事件) -->
-            <button class="btn unlocked" onclick="openModal('STAGE 04', 'Week 4 - 跟我說悄悄話', '這是 Week 4 的跟我說悄悄話匿名留言板專案。')">
+            <!-- 按鈕 4 (已解鎖) -->
+            <button class="btn unlocked" data-stage="STAGE 04" data-title="Week 4 - 跟我說悄悄話" data-desc="這是 Week 4 的跟我說悄悄話匿名留言板專案。">
                 <span class="btn-week">STAGE 04</span>
                 <span class="btn-title">Week 4-跟我說悄悄話</span>
             </button>
@@ -429,15 +432,16 @@
         <div class="modal-card">
             <h2 class="modal-title" id="modalStageTitle">STAGE 01</h2>
             <p class="modal-body" id="modalStageContent">關卡內容載入中...</p>
-            <button class="modal-close-btn" onclick="closeModal()">關閉視窗</button>
+            <button class="modal-close-btn" id="modalCloseBtn">關閉視窗</button>
         </div>
     </div>
 
     <!-- JavaScript 腳本區塊 -->
     <script>
-       // 生成櫻花花瓣
+        // 生成櫻花花瓣
         function createSakura() {
             const container = document.getElementById('sakura');
+            if (!container) return;
             const petalCount = 20;
 
             for (let i = 0; i < petalCount; i++) {
@@ -456,20 +460,45 @@
             }
         }
 
-        // 開啟 Modal 關卡視窗
-        function openModal(stage, title, desc) {
-            document.getElementById('modalStageTitle').innerText = `${stage} 🌸 ${title}`;
-            document.getElementById('modalStageContent').innerText = desc;
-            document.getElementById('modalOverlay').classList.add('active');
+        // 開啟與關閉 Modal 彈窗機制
+        function setupModalListeners() {
+            const unlockedBtns = document.querySelectorAll('.btn.unlocked');
+            const overlay = document.getElementById('modalOverlay');
+            const closeBtn = document.getElementById('modalCloseBtn');
+            const titleEl = document.getElementById('modalStageTitle');
+            const contentEl = document.getElementById('modalStageContent');
+
+            // 為所有已解鎖按鈕綁定點擊事件
+            unlockedBtns.forEach(btn => {
+                btn.addEventListener('click', function () {
+                    const stage = this.getAttribute('data-stage');
+                    const title = this.getAttribute('data-title');
+                    const desc = this.getAttribute('data-desc');
+
+                    titleEl.innerText = `${stage} 🌸 ${title}`;
+                    contentEl.innerText = desc;
+                    overlay.classList.add('active');
+                });
+            });
+
+            // 關閉按鈕事件
+            closeBtn.addEventListener('click', function () {
+                overlay.classList.remove('active');
+            });
+
+            // 點擊背景空白處也可關閉彈窗
+            overlay.addEventListener('click', function (e) {
+                if (e.target === overlay) {
+                    overlay.classList.remove('active');
+                }
+            });
         }
 
-        // 關閉 Modal 視窗
-        function closeModal() {
-            document.getElementById('modalOverlay').classList.remove('active');
-        }
-
-        // 初始化櫻花動畫
-        document.addEventListener('DOMContentLoaded', createSakura);
+        // 頁面載入完成後自動執行
+        document.addEventListener('DOMContentLoaded', () => {
+            createSakura();
+            setupModalListeners();
+        });
     </script>
 
 </body>
