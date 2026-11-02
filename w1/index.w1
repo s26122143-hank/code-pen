@@ -1,0 +1,159 @@
+
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>個人數位名片</title>
+    <!-- 連結 CSS 樣式檔 -->
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+    <!-- 名片主要卡片容器 -->
+    <main class="card">
+        
+        <!-- 大頭貼區域 -->
+        <div class="avatar-box">
+            <img src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=300&auto=format&fit=crop&q=80" alt="大頭貼照片" class="avatar">
+        </div>
+
+        <!-- 個人資訊 -->
+        <h1 class="name">彭于晏</h1>
+        <p class="bio"></p>
+
+        <!-- 按鈕區塊 -->
+        <div class="button-group">
+            <!-- Instagram 按鈕 -->
+            <a href="https://www.instagram.com/" target="_blank" class="btn btn-instagram">
+                Instagram
+            </a>
+            
+            <!-- Email 按鈕 -->
+            <a href="mailto:your-email@example.com" class="btn btn-email">
+                Email
+            </a>
+        </div>
+
+    </main>
+
+</body>
+</html>
+/* 1. 基礎設定與字體重置 */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+}
+
+/* 2. 全域背景與整體畫面垂直水平居中 */
+body {
+    background-color: #f7f3ee; /* 溫和的燕麥奶底色 */
+    min-height: 100vh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 20px;
+}
+
+/* 3. 名片主體樣式 */
+.card {
+    background-color: #ffffff;
+    width: 100%;
+    max-width: 340px; /* 限制名片最大寬度，呈現精緻比例 */
+    padding: 40px 28px;
+    border-radius: 24px; /* 圓潤柔和的卡片轉角 */
+    text-align: center;
+    
+    /* 現代感柔軟微陰影 (Soft Shadow) */
+    box-shadow: 0 15px 35px rgba(163, 145, 133, 0.12);
+    
+    /* 增加平滑過渡效果 */
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+/* 卡片滑鼠懸浮時的微滑動效果 */
+.card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 20px 40px rgba(163, 145, 133, 0.18);
+}
+
+/* 4. 大頭貼區域 */
+.avatar-box {
+    width: 100px;
+    height: 100px;
+    margin: 0 auto 20px auto;
+    border-radius: 50%; /* 圓形大頭貼 */
+    overflow: hidden;
+    
+    /* 雙層奶茶色邊框細節 */
+    border: 3px solid #e8dfd5;
+    box-shadow: 0 6px 16px rgba(181, 160, 143, 0.15);
+}
+
+.avatar {
+    width: 100%;
+    height: 100%;
+    object-fit: cover; /* 確保照片自動裁切不拉伸變形 */
+}
+
+/* 5. 名字與簡介 */
+.name {
+    color: #4a3f35; /* 濃郁的泰式奶茶褐色 */
+    font-size: 1.4rem;
+    font-weight: 600;
+    margin-bottom: 8px;
+    letter-spacing: 0.5px;
+}
+
+.bio {
+    color: #8c7b6d; /* 淺摩卡奶茶色 */
+    font-size: 0.88rem;
+    line-height: 1.5;
+    margin-bottom: 28px;
+}
+
+/* 6. 按鈕區域 */
+.button-group {
+    display: flex;
+    flex-direction: column;
+    gap: 12px; /* 按鈕之間的距離 */
+}
+
+/* 按鈕基本通用設定 */
+.btn {
+    display: block;
+    width: 100%;
+    padding: 13px;
+    border-radius: 12px;
+    text-decoration: none;
+    font-size: 0.95rem;
+    font-weight: 500;
+    letter-spacing: 0.5px;
+    transition: all 0.25s ease;
+}
+
+/* Instagram 按鈕：主色調（經典厚奶茶） */
+.btn-instagram {
+    background-color: #cbb29a;
+    color: #ffffff;
+    box-shadow: 0 4px 12px rgba(203, 178, 154, 0.35);
+}
+
+.btn-instagram:hover {
+    background-color: #be9e83;
+    box-shadow: 0 6px 16px rgba(203, 178, 154, 0.5);
+}
+
+/* Email 按鈕：次要色調（奶白色襯底+邊框） */
+.btn-email {
+    background-color: #faf7f2;
+    color: #6e5e51;
+    border: 1px solid #e8dfd5;
+}
+
+.btn-email:hover {
+    background-color: #f0e8df;
+    color: #4a3f35;
+}
