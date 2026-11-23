@@ -1,0 +1,437 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <title>SPIDER-POLL // 拍照二選一投票器</title>
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Google Fonts: 新宇宙美漫標題字體 + 繁體中文黑體 -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Bangers&family=Chakra+Petch:ital,wght@0,600;0,700;1,700&family=Noto+Sans+TC:wght@500;700;900&display=swap" rel="stylesheet">
+
+  <style>
+    :root {
+      --miles-black: #08080c;
+      --miles-red: #ff1e38;
+      --miles-white: #f8fafc;
+      --night-purple: #1e0b36;
+      --neon-purple: #9333ea;
+      --spider-cyan: #00f0ff;
+    }
+
+    * {
+      box-sizing: border-box;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      background-color: var(--miles-black);
+      /* 深夜未熄燈的紫色城市漸層背景 */
+      background-image:
+        radial-gradient(circle at 50% 18%, rgba(126, 34, 206, 0.38) 0%, rgba(30, 11, 54, 0.72) 42%, rgba(8, 8, 12, 0.98) 88%),
+        radial-gradient(circle at 85% 75%, rgba(255, 30, 56, 0.16) 0%, transparent 50%);
+      color: var(--miles-white);
+      font-family: 'Noto Sans TC', sans-serif;
+      overflow-x: hidden;
+      position: relative;
+    }
+
+    /* 美漫半色調網點紋理 (Halftone Dots) */
+    .halftone-bg {
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      z-index: 0;
+      opacity: 0.18;
+      background-image: radial-gradient(#a855f7 1px, transparent 1px);
+      background-size: 14px 14px;
+    }
+
+    /* 深夜城市剪影與未熄燈的窗戶 */
+    .city-skyline {
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      height: 150px;
+      pointer-events: none;
+      z-index: 1;
+      opacity: 0.55;
+      background:
+        /* 建築物剪影 */
+        linear-gradient(to top, #050508 65%, transparent 65%) 2% 100% / 60px 130px no-repeat,
+        linear-gradient(to top, #070510 80%, transparent 80%) 10% 100% / 85px 150px no-repeat,
+        linear-gradient(to top, #050508 60%, transparent 60%) 22% 100% / 70px 115px no-repeat,
+        linear-gradient(to top, #090614 85%, transparent 85%) 33% 100% / 95px 145px no-repeat,
+        linear-gradient(to top, #050508 70%, transparent 70%) 48% 100% / 75px 125px no-repeat,
+        linear-gradient(to top, #080512 90%, transparent 90%) 60% 100% / 100px 150px no-repeat,
+        linear-gradient(to top, #050508 65%, transparent 65%) 75% 100% / 80px 120px no-repeat,
+        linear-gradient(to top, #070510 82%, transparent 82%) 88% 100% / 95px 140px no-repeat;
+    }
+
+    .city-windows {
+      position: fixed;
+      bottom: 8px;
+      left: 0;
+      right: 0;
+      height: 110px;
+      pointer-events: none;
+      z-index: 1;
+      background-image:
+        radial-gradient(2px 3px at 12% 35%, #facc15, transparent),
+        radial-gradient(2px 3px at 14% 55%, #c084fc, transparent),
+        radial-gradient(2px 3px at 36% 28%, #38bdf8, transparent),
+        radial-gradient(2px 3px at 39% 48%, #facc15, transparent),
+        radial-gradient(2px 3px at 63% 22%, #f43f5e, transparent),
+        radial-gradient(2px 3px at 66% 42%, #e879f9, transparent),
+        radial-gradient(2px 3px at 64% 68%, #facc15, transparent),
+        radial-gradient(2px 3px at 91% 32%, #38bdf8, transparent),
+        radial-gradient(2px 3px at 93% 60%, #c084fc, transparent);
+      animation: cityTwinkle 4s infinite alternate ease-in-out;
+    }
+
+    @keyframes cityTwinkle {
+      0% { opacity: 0.45; }
+      100% { opacity: 0.9; }
+    }
+
+    /* 標題字體與色差故障風 (Chromatic Aberration) */
+    .spider-font {
+      font-family: 'Bangers', 'Chakra Petch', 'Noto Sans TC', sans-serif;
+      letter-spacing: 0.06em;
+    }
+
+    .glitch-title {
+      text-shadow: -2.5px 0 var(--miles-red), 2.5px 0 var(--spider-cyan);
+    }
+
+    /* 邁爾斯戰衣風格漫畫卡片 */
+    .comic-card {
+      background: rgba(12, 12, 18, 0.92);
+      border: 3px solid var(--miles-white);
+      box-shadow: 6px 6px 0px var(--miles-red);
+      transition: transform 0.18s cubic-bezier(0.22, 1, 0.36, 1), box-shadow 0.18s ease;
+    }
+
+    .comic-card:hover {
+      transform: translate(-2px, -2px);
+      box-shadow: 8px 8px 0px var(--miles-red), -3px -3px 0px var(--spider-cyan);
+    }
+
+    .comic-btn-red {
+      background: var(--miles-red);
+      color: var(--miles-white);
+      border: 3px solid var(--miles-white);
+      box-shadow: 4px 4px 0px #000000, 6px 6px 0px var(--miles-white);
+      transition: all 0.14s ease;
+    }
+
+    .comic-btn-red:hover:not(:disabled) {
+      transform: translate(-2px, -2px);
+      box-shadow: 6px 6px 0px #000000, 8px 8px 0px var(--spider-cyan);
+    }
+
+    .comic-btn-red:active:not(:disabled) {
+      transform: translate(3px, 3px);
+      box-shadow: 1px 1px 0px #000000;
+    }
+
+    .comic-btn-red:disabled {
+      opacity: 0.55;
+      cursor: not-allowed;
+    }
+
+    /* 1:1 正方形拍照框 */
+    .photo-box {
+      aspect-ratio: 1 / 1;
+      background:
+        linear-gradient(135deg, rgba(255, 30, 56, 0.12) 0%, rgba(147, 51, 234, 0.18) 100%),
+        #0d0d14;
+      border: 3px dashed rgba(248, 250, 252, 0.65);
+      position: relative;
+      overflow: hidden;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+
+    .photo-box:hover {
+      border-style: solid;
+      border-color: var(--miles-red);
+      box-shadow: inset 0 0 24px rgba(255, 30, 56, 0.25);
+    }
+
+    /* 隱藏彩蛋：右上角垂吊蜘蛛 */
+    .hanging-spider {
+      position: fixed;
+      top: 0;
+      right: 18px;
+      z-index: 60;
+      cursor: pointer;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      transition: transform 0.25s cubic-bezier(0.34, 1.56, 0.64, 1);
+    }
+
+    .hanging-spider:hover {
+      transform: translateY(10px) scale(1.08);
+    }
+
+    .spider-thread {
+      width: 2px;
+      height: 36px;
+      background: linear-gradient(to bottom, rgba(255,255,255,0.3), #ffffff);
+      box-shadow: 0 0 6px #ffffff;
+    }
+
+    /* 全螢幕互動蜘蛛絲畫布 */
+    #webCanvas {
+      position: fixed;
+      inset: 0;
+      width: 100vw;
+      height: 100vh;
+      pointer-events: none;
+      z-index: 50;
+    }
+
+    /* 自訂捲軸 */
+    ::-webkit-scrollbar { width: 8px; }
+    ::-webkit-scrollbar-track { background: #08080c; }
+    ::-webkit-scrollbar-thumb { background: var(--miles-red); border: 1px solid #fff; }
+  </style>
+</head>
+<body class="selection:bg-[#ff1e38] selection:text-white">
+
+  <!-- 背景質感層 -->
+  <div class="halftone-bg"></div>
+  <div class="city-skyline"></div>
+  <div class="city-windows"></div>
+
+  <!-- 互動式拉蜘蛛絲 Canvas（滑動/點擊螢幕皆可拉出白色蜘蛛絲） -->
+  <canvas id="webCanvas"></canvas>
+
+  <!-- 右上角隱藏彩蛋：房主提前開票機關 -->
+  <div id="adminEasterEgg" class="hanging-spider group" title="🕷️ 房主秘密通道">
+    <div class="spider-thread group-hover:h-12 transition-all duration-200"></div>
+    <div class="w-10 h-10 rounded-full bg-[#09090d] border-2 border-white flex items-center justify-center shadow-[0_0_12px_rgba(255,30,56,0.85)]">
+      <!-- 邁爾斯塗鴉風蜘蛛 SVG -->
+      <svg class="w-6 h-6 text-[#ff1e38] group-hover:text-white transition-colors" viewBox="0 0 24 24" fill="currentColor">
+        <path d="M12 2L9.5 6.5L5 4L7 9L2 10L6.5 13L3 18L8.5 16.5L12 22L15.5 16.5L21 18L17.5 13L22 10L17 9L19 4L14.5 6.5L12 2ZM12 8.5C13.38 8.5 14.5 9.84 14.5 11.5C14.5 13.16 13.38 14.5 12 14.5C10.62 14.5 9.5 13.16 9.5 11.5C9.5 9.84 10.62 8.5 12 8.5Z"/>
+      </svg>
+    </div>
+  </div>
+
+  <!-- 主容器 -->
+  <main class="relative z-10 max-w-3xl mx-auto px-4 pt-6 pb-24">
+
+    <!-- 頂部導覽與模式切換 -->
+    <header class="flex flex-wrap items-center justify-between gap-3 mb-6 border-b-2 border-white/20 pb-4 pr-12">
+      <div class="flex items-center gap-3 cursor-pointer" onclick="switchToCreate()">
+        <div class="w-11 h-11 bg-[#ff1e38] border-2 border-white flex items-center justify-center rotate-[-4deg] shadow-[3px_3px_0_#fff]">
+          <span class="spider-font text-2xl text-white">VS</span>
+        </div>
+        <div>
+          <h1 class="spider-font text-3xl sm:text-4xl tracking-wider glitch-title leading-none">
+            SPIDER-CHOICE
+          </h1>
+          <p class="text-xs text-purple-300 font-bold tracking-widest mt-0.5">
+            拍照二選一 // 滑動螢幕可拉出蜘蛛絲 🕸️
+          </p>
+        </div>
+      </div>
+
+      <div class="flex items-center gap-2">
+        <!-- 本地模擬測試開關（方便在 CodePen 無後端或離線時直接體驗） -->
+        <button id="demoModeBtn" onclick="toggleDemoMode()"
+          class="text-xs font-bold px-2.5 py-1.5 border-2 border-purple-400/70 bg-purple-950/70 text-purple-200 hover:border-white transition">
+          ☁️ 雲端 GAS 模式
+        </button>
+        <button onclick="switchToCreate()"
+          class="text-xs font-black px-3 py-1.5 bg-white text-black border-2 border-black hover:bg-[#ff1e38] hover:text-white hover:border-white transition">
+          ＋ 開新投票
+        </button>
+      </div>
+    </header>
+
+    <!-- 全域提示訊息條 -->
+    <div id="toastBanner" class="hidden mb-5 px-4 py-3 border-2 border-white bg-[#1a0b2e] text-white font-bold text-sm shadow-[4px_4px_0_#ff1e38] flex items-center justify-between">
+      <span id="toastText"></span>
+      <button onclick="hideToast()" class="ml-3 text-white/70 hover:text-white">✕</button>
+    </div>
+
+    <!-- ========================================== -->
+    <!-- 視圖 1：建立投票 (CREATE VIEW)              -->
+    <!-- ========================================== -->
+    <section id="createView" class="space-y-6">
+      <div class="comic-card p-5 sm:p-7">
+        <div class="inline-block bg-[#ff1e38] text-white text-xs font-black px-2.5 py-1 border border-white mb-3 -rotate-1">
+          STEP 01 // 設定對決題目與照片
+        </div>
+
+        <!-- 投票題目 -->
+        <div class="mb-5">
+          <label class="block text-sm font-black tracking-wider text-purple-200 mb-2">
+            投票題目（例如：今晚宵夜吃哪間？這件外套選哪色？）
+          </label>
+          <input id="pollTitleInput" type="text" maxlength="60"
+            placeholder="輸入你的二選一難題..."
+            class="w-full px-4 py-3 bg-[#08080c] border-2 border-white text-white font-bold text-lg focus:outline-none focus:border-[#ff1e38] focus:shadow-[0_0_0_2px_#ff1e38]" />
+        </div>
+
+        <!-- 雙照片拍照上傳區 (1:1 正方形裁切) -->
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-5 mb-6">
+          <!-- 選項 A -->
+          <div>
+            <div class="flex items-center justify-between mb-2">
+              <span class="spider-font text-xl text-[#ff1e38] tracking-wider">OPTION A // 紅方選手</span>
+              <button type="button" onclick="loadSamplePhoto('A')" class="text-[11px] text-purple-300 underline hover:text-white">
+                測試範例圖
+              </button>
+            </div>
+            <div id="boxA" class="photo-box flex flex-col items-center justify-center text-center p-4" onclick="document.getElementById('fileA').click()">
+              <img id="previewA" class="hidden absolute inset-0 w-full h-full object-cover" alt="選項A預覽" />
+              <div id="placeholderA" class="space-y-2 pointer-events-none">
+                <div class="w-12 h-12 mx-auto rounded-full bg-[#ff1e38]/20 border-2 border-[#ff1e38] flex items-center justify-center text-2xl">
+                  📷
+                </div>
+                <p class="font-black text-sm text-white">點擊拍照或選取照片</p>
+                <p class="text-xs text-purple-300">自動裁切 1:1 正方形 (800px)</p>
+              </div>
+              <span id="badgeA" class="hidden absolute bottom-2 right-2 bg-black/85 border border-white text-[10px] font-bold px-2 py-0.5 text-cyan-300">
+                800×800 READY
+              </span>
+            </div>
+            <!-- 支援直接喚起手機相機 -->
+            <input id="fileA" type="file" accept="image/*" class="hidden" onchange="handleImageUpload(event, 'A')" />
+          </div>
+
+          <!-- 選項 B -->
+          <div>
+            <div class="flex items-center justify-between mb-2">
+              <span class="spider-font text-xl text-cyan-300 tracking-wider">OPTION B // 藍方選手</span>
+              <button type="button" onclick="loadSamplePhoto('B')" class="text-[11px] text-purple-300 underline hover:text-white">
+                測試範例圖
+              </button>
+            </div>
+            <div id="boxB" class="photo-box flex flex-col items-center justify-center text-center p-4" onclick="document.getElementById('fileB').click()">
+              <img id="previewB" class="hidden absolute inset-0 w-full h-full object-cover" alt="選項B預覽" />
+              <div id="placeholderB" class="space-y-2 pointer-events-none">
+                <div class="w-12 h-12 mx-auto rounded-full bg-cyan-400/20 border-2 border-cyan-300 flex items-center justify-center text-2xl">
+                  📸
+                </div>
+                <p class="font-black text-sm text-white">點擊拍照或選取照片</p>
+                <p class="text-xs text-purple-300">自動裁切 1:1 正方形 (800px)</p>
+              </div>
+              <span id="badgeB" class="hidden absolute bottom-2 right-2 bg-black/85 border border-white text-[10px] font-bold px-2 py-0.5 text-cyan-300">
+                800×800 READY
+              </span>
+            </div>
+            <input id="fileB" type="file" accept="image/*" class="hidden" onchange="handleImageUpload(event, 'B')" />
+          </div>
+        </div>
+
+        <!-- 截止時間設定（精確到幾點幾分） -->
+        <div class="mb-6 bg-[#130924] border-2 border-purple-400/50 p-4">
+          <div class="flex flex-wrap items-center justify-between gap-2 mb-2">
+            <label for="endTimeInput" class="text-sm font-black text-white flex items-center gap-1.5">
+              ⏰ 開票截止時間（時間一到自動鎖定開票）
+            </label>
+            <div class="flex gap-1.5">
+              <button type="button" onclick="setQuickDeadline(5)" class="text-xs px-2 py-0.5 bg-purple-900 border border-purple-400 hover:bg-white hover:text-black font-bold">+5分鐘</button>
+              <button type="button" onclick="setQuickDeadline(30)" class="text-xs px-2 py-0.5 bg-purple-900 border border-purple-400 hover:bg-white hover:text-black font-bold">+30分鐘</button>
+              <button type="button" onclick="setQuickDeadline(60)" class="text-xs px-2 py-0.5 bg-purple-900 border border-purple-400 hover:bg-white hover:text-black font-bold">+1小時</button>
+            </div>
+          </div>
+          <input id="endTimeInput" type="datetime-local"
+            class="w-full px-3 py-2.5 bg-[#08080c] border-2 border-white text-white font-bold focus:outline-none focus:border-[#ff1e38]" />
+        </div>
+
+        <!-- 送出建立按鈕 -->
+        <button id="createSubmitBtn" onclick="createPoll()"
+          class="comic-btn-red w-full py-4 spider-font text-2xl sm:text-3xl tracking-widest flex items-center justify-center gap-3">
+          <span>🕸️ 產生專屬投票連結</span>
+        </button>
+      </div>
+
+      <!-- 快速載入既有投票 ID 區塊 -->
+      <div class="comic-card p-4 flex flex-col sm:flex-row items-center gap-3">
+        <span class="text-xs font-black text-purple-300 whitespace-nowrap">已有投票代碼？</span>
+        <input id="jumpPollIdInput" type="text" placeholder="輸入 Poll ID（例如 P173...）"
+          class="w-full px-3 py-2 bg-[#08080c] border border-white/60 text-sm text-white focus:outline-none focus:border-[#ff1e38]" />
+        <button onclick="jumpToPoll()"
+          class="w-full sm:w-auto whitespace-nowrap px-4 py-2 bg-white text-black font-black text-sm border-2 border-black hover:bg-[#ff1e38] hover:text-white transition">
+          前往投票 →
+        </button>
+      </div>
+    </section>
+
+    <!-- ========================================== -->
+    <!-- 視圖 2：投票與即時倒數開票 (POLL VIEW)       -->
+    <!-- ========================================== -->
+    <section id="pollView" class="hidden space-y-6">
+
+      <!-- 分享連結橫幅（剛建立或隨時複製） -->
+      <div class="bg-[#16092b] border-2 border-white p-3.5 shadow-[4px_4px_0_#00f0ff] flex flex-col sm:flex-row items-center justify-between gap-3">
+        <div class="w-full overflow-hidden">
+          <div class="text-[11px] font-black text-cyan-300 uppercase tracking-wider">
+            🔗 專屬分享連結（傳到群組即可投票）
+          </div>
+          <input id="shareUrlDisplay" type="text" readonly
+            class="w-full bg-transparent text-xs sm:text-sm text-white font-mono truncate focus:outline-none mt-0.5" />
+        </div>
+        <button onclick="copyShareLink()"
+          class="w-full sm:w-auto whitespace-nowrap px-4 py-2 bg-[#ff1e38] text-white font-black text-xs border-2 border-white hover:bg-white hover:text-black transition">
+          複製連結 📋
+        </button>
+      </div>
+
+      <!-- 投票主卡片 -->
+      <div class="comic-card p-5 sm:p-7">
+        <!-- 狀態與即時倒數計時器 -->
+        <div class="flex flex-wrap items-center justify-between gap-3 pb-4 mb-5 border-b-2 border-white/15">
+          <div class="flex items-center gap-2">
+            <span id="pollStatusBadge" class="px-3 py-1 text-xs font-black bg-[#ff1e38] text-white border border-white animate-pulse">
+              ● LIVE 投票進行中
+            </span>
+            <span id="pollIdTag" class="text-xs font-mono text-purple-300"></span>
+          </div>
+
+          <!-- 倒數計時器 -->
+          <div class="flex items-center gap-2 bg-black/80 border-2 border-white px-3 py-1.5">
+            <span class="text-xs font-bold text-purple-300">距離開票</span>
+            <span id="countdownDisplay" class="spider-font text-2xl text-cyan-300 tracking-wider">
+              --:--:--
+            </span>
+          </div>
+        </div>
+
+        <!-- 題目標題 -->
+        <h2 id="displayPollTitle" class="text-2xl sm:text-3xl font-black text-white mb-6 leading-snug">
+          載入題目中...
+        </h2>
+
+        <!-- 二選一圖片卡片區 -->
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-6 relative">
+          <!-- 中央 VS 徽章 -->
+          <div class="hidden sm:flex absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 z-20 w-12 h-12 rounded-full bg-[#ff1e38] border-3 border-white items-center justify-center spider-font text-2xl text-white shadow-[0_0_15px_#000]">
+            VS
+          </div>
+
+          <!-- 卡片 A -->
+          <div id="cardOptionA" onclick="castVote('A')"
+            class="group cursor-pointer border-3 border-white bg-[#0a0a0f] overflow-hidden relative transition-transform hover:-translate-y-1">
+            <!-- 勝出皇冠標籤 -->
+            <div id="winnerBadgeA" class="hidden absolute top-3 left-3 z-20 bg-[#ff1e38] text-white spider-font text-xl px-3 py-1 border-2 border-white -rotate-3 shadow-[3px_3px_0_#000]">
+              👑 WINNER! 勝出
+            </div>
+            <!-- 已投票標記 -->
+            <div id="votedTagA" class="hidden absolute top-3 right-3 z-20 bg-white text-black font-black text-xs px-2.5 py-1 border-2 border-black">
+              🕸️ 你投了這張
+            </div>
+
+            <div class="aspect-square w-full bg-black relative overflow-hidden">
+              <img id="pollImgA" src="" alt="選項 A" class="w-full h
